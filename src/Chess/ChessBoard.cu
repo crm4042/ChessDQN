@@ -125,4 +125,50 @@ void printChessBoard(Piece** board){
 	}
 }
 
+/**
+  *	Moves a piece from an old position to a new position
+  *	Parameter board: the matrix of pieces to alter
+  *	Parameter oldRow: the old row to move the piece from
+  *	Parameter oldCol: the old column to move the piece from
+  *	Parameter newRow: the new row to move to piece to
+  *	Parameter newCol: the new column to move the piece to
+  *	Returns: nothing
+  */
 
+void movePiece(Piece** board, int oldRow, int oldCol, int newRow, int newCol){
+	// Moves the piece to the designated position
+	board[newRow][newCol].numberConversion=
+		board[oldRow][oldCol].numberConversion;
+
+	// Deletes the piece from the old position
+	board[oldRow][oldCol].numberConversion=0;
+}
+
+/**
+  *	Creates a one-hot encoded vector of the game board
+  *	Parameter board: the game board
+  *	Parameter inputVector: the vector that will recieve the game board's
+  *	values
+  *	Returns: nothing
+  */
+
+void oneHotEncode(Piece** board, double* inputVector){
+	for(int row=0; row<DIM; row++){
+		for(int col=0; col<DIM; col++){
+
+			// Gets the number conversion for the piece
+			unsigned int numberConversion=
+				board[row][col].numberConversion;
+			
+			for(int field=0; field<8; field++){
+			
+				// Gets the end bit
+				inputVector[row*DIM+col+field]=
+					numberConversion%2;
+
+				// Does a bitwise right shift
+				numberConversion/=2;
+			}
+		}
+	}
+}
