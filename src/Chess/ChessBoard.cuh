@@ -1,6 +1,8 @@
 #ifndef CHESSBOARD
 #define CHESSBOARD
 
+#include "Piece.cuh"
+
 #define DIM 8
 
 Piece** makeChessBoard();
