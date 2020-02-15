@@ -8,7 +8,7 @@
   */
 Piece** makeChessBoard(){
 
-	Piece** board = (Piece*)(calloc(DIM, sizeof(Piece*)));
+	Piece** board = (Piece**)(calloc(DIM, sizeof(Piece*)));
 	
 	for(int row=0; row<DIM; row++){
 		
@@ -17,13 +17,15 @@ Piece** makeChessBoard(){
 		for(int col=0; col<DIM; col++){
 			// Clears the piece's data values
 			board[row][col].numberConversion=0;
-
-			// Assigns a color value of 1 to black
-			board[row][col].piece.color=
-				(unsigned int)(row==DIM-2 || row==DIM-1);
+			if(row==0 || row==1 || row==DIM-2 || row==DIM-1){
+				// Assigns a color value of 1 to black
+				board[row][col].piece.color=
+					(unsigned int)(row==DIM-2 || 
+							row==DIM-1);
 			
-			// Adds that it is the first move
-			board[row][col].piece.isFirstMove=1;
+				// Adds that it is the first move
+				board[row][col].piece.isFirstMove=1;
+			}
 			
 			// Assigns the piece value
 			if(row==1 || row==DIM-2){
@@ -75,7 +77,18 @@ Piece** makeChessBoard(){
   */
 
 void printChessBoard(Piece** board){
+	printf("\t");
+
+	for(int col=0; col<DIM; col++){
+		printf("%c\t", ((int)'A')+col);
+	}
+
+	printf("\n");
+
 	for(int row=0; row<DIM; row++){
+		
+		printf("%d\t", row);
+
 		for(int col=0; col<DIM; col++){
 
 			// Prints a space
@@ -85,7 +98,6 @@ void printChessBoard(Piece** board){
 
 			// Prints a piece
 			else{
-
 				// Prints the initial space
 				printf("__");
 
@@ -123,6 +135,7 @@ void printChessBoard(Piece** board){
 		}
 		printf("\n");
 	}
+	printf("===================================================\n");
 }
 
 /**
