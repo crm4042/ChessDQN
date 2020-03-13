@@ -101,13 +101,13 @@ void feedForward(NeuralNet* nn, double*** outputs, double* inputs){
 }
 
 /**
-  *	Makes the output matrix
+  *	Makes the expected output matrix
   *	Parameter nn: the neural net to make the output matrix from
   *	Parameter numOutputs: the number of outputs to create
   *	Return: the output matrix created
   */
 
-double*** makeOutputs(NeuralNet* nn, int numOutputs){
+double*** makeExpected(NeuralNet* nn, int numOutputs){
 	double*** outputs;
 	cudaMallocManaged(&outputs, numOutputs * sizeof(double**));
 	
@@ -120,6 +120,26 @@ double*** makeOutputs(NeuralNet* nn, int numOutputs){
 					nn->neurons[layer] * sizeof(double));
 		}
 	}
+	return outputs;
+}
+
+/**
+  *	Makes the actual outputs
+  *	Parameter nn: the neural network to get the outputs for
+  *	Parameter numOutputs: the number of outputs to get
+  *	Returns: the matrix representing the actual outputs corresponding to 
+  *	the structure of the neural network
+  */
+
+double** makeActual(NeuralNet* nn, int numOutputs){
+	double** outputs;
+	cudaMallocManaged(&outputs, numOutputs*sizeof(double*));
+	
+	for(int output=0; output<numOutputs; output++){
+		cudaMallocManaged(&outputs[output], 
+			nn->neurons[nn->layers-1] * sizeof(double));
+	}
+
 	return outputs;
 }
 

@@ -1,5 +1,5 @@
 #include "Backpropogation.cuh"
-#include "NeuralNet.cuh"
+#include "NeuralNetwork.cuh"
 
 /**
   *	Gets the errors associated with each neuron's output

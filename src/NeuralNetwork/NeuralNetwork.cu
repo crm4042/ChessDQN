@@ -1,4 +1,4 @@
-#include "NeuralNet.cuh"
+#include "NeuralNetwork.cuh"
 
 /**
   *	Creates a neural network with the specified number of layers
@@ -65,7 +65,7 @@ NeuralNet* createNeuralNet(int layers, int* neurons, activation** activations){
 void freeNeuralNet(NeuralNet* nn){
 	for(int layer = 0; layer < nn->layers-1; layer++){
 		for(int neuron1=0; neuron1 < nn->neurons[layer]; neuron1++){
-			cudaFree(nn->weights[layer][neuron2]);
+			cudaFree(nn->weights[layer][neuron1]);
 		}
 		cudaFree(nn->activations[layer]);
 		cudaFree(nn->biases[layer]);

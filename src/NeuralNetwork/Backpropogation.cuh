@@ -1,4 +1,4 @@
-#include "NeuralNet.cuh"
+#include "NeuralNetwork.cuh"
 
 #define LEARNING_RATE .000001
 #define GRADIENT_CEILING 10
