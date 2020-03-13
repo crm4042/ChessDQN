@@ -11,4 +11,9 @@ NeuralNet* setupMonotonicNeuralNet(int layers, int inputNeurons,
 void setupGame(int layers, int inputNeurons, int hiddenNeurons, 
 	int outputNeurons, activation activations);
 
+void setupPausedGame();
+
+void getSetup(int layers, int inputNeurons, int hiddenNeurons, 
+	int outputNeurons, activation activations);
+
 #endif

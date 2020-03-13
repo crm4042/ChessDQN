@@ -225,6 +225,12 @@ void train(NeuralNet* nn1, NeuralNet* nn2){
 
 	// Loops through infinite games and plays the game to train it
 	for(int game=0; 1; game++){
+		if(game%5==0){
+			printf("Serializing the neural networks\n");
+			serializeNeuralNet(nn1, "nn1.txt");
+			serializeNeuralNet(nn2, "nn2.txt");
+		}
+
 		printf("Training on game %d\n", game);
 		playGame(nn1, nn2, sharedInputs, expected1, expected2, 
 			actual1, actual2, chosens1, chosens2);

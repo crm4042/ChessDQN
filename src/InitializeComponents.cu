@@ -67,3 +67,36 @@ void setupGame(int layers, int inputNeurons, int hiddenNeurons,
 
 	train(nn1, nn2);
 }
+
+void setupPausedGame(){
+	printf("Deserializing the neural networks\n");
+	NeuralNet* nn1=deserializeNeuralNet("nn1.txt");
+	NeuralNet* nn2=deserializeNeuralNet("nn2.txt");
+	train(nn1, nn2);
+}
+
+void getSetup(int layers, int inputNeurons, int hiddenNeurons, 
+	int outputNeurons, activation activations){
+	
+	int resume=0;
+
+	char* buffer=(char*)calloc(80, sizeof(char));
+	
+	do{
+		printf("Do you want to resume a game?[y/n]\n");
+		fgets(buffer, 78, stdin);
+	} while(strcmp(buffer, "y\n\0")!=0 && strcmp(buffer, "n\n\0")!=0);
+
+	if(strcmp(buffer, "y\n\0")==0){
+		resume=1;
+	}
+	
+	free(buffer);
+
+	if(resume){
+		setupPausedGame();
+	}
+	else{
+		setupGame(layers, inputNeurons, hiddenNeurons, outputNeurons, activations);
+	}
+}

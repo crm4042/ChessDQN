@@ -1,7 +1,7 @@
 #include "NeuralNetwork.cuh"
 
 #define LEARNING_RATE .000001
-#define GRADIENT_CEILING 10
+#define GRADIENT_CEILING .001
 
 __global__
 void getErrorKernel(NeuralNet* nn, double** errors, double** outputs, 

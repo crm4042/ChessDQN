@@ -53,9 +53,9 @@ NeuralNet* deserializeNeuralNet(char* fileName){
 		for(int neuron1=0; neuron1<nn->neurons[layer]; neuron1++){
 			cudaMallocManaged(&nn->weights[layer][neuron1], 
 				nn->neurons[layer+1]*sizeof(double));
-			for(int neuron2=0; neuron2<nn->neurons[layer]; neuron2++){
+			for(int neuron2=0; neuron2<nn->neurons[layer+1]; neuron2++){
 				fscanf(file, "%lf\n", &nn->weights[layer][neuron1][neuron2]);
-				printf("Layer=%d\tNeuron1=%d\tNeuron2=%d\tWeight=%lf\n", layer, neuron1, neuron2, nn->weights[layer][neuron1][neuron2]);
+				//printf("Layer=%d\tNeuron1=%d\tNeuron2=%d\tWeight=%lf\n", layer, neuron1, neuron2, nn->weights[layer][neuron1][neuron2]);
 			}
 		}
 	}
@@ -70,6 +70,8 @@ NeuralNet* deserializeNeuralNet(char* fileName){
 	}
 
 	fclose(file);
+
+	serializeNeuralNet(nn, "newnn.txt");
 
 	return nn;
 }

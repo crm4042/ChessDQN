@@ -8,5 +8,5 @@
 
 int main(){
 	printf("Initializing game\n");
-	setupGame(4, INPUTS, HIDDEN, OUTPUTS, LEAKYRELU);
+	getSetup(4, INPUTS, HIDDEN, OUTPUTS, LEAKYRELU);
 }

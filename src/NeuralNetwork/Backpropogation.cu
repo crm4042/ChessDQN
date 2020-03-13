@@ -234,7 +234,18 @@ void changeWeights(NeuralNet* nn, double*** deltaWeights, int numOutputs){
 	for(int layer = threadIdx.x + (blockDim.x * blockIdx.x); layer < nn->layers-1; layer += (blockDim.x * gridDim.x)){
 		for(int neuron1 = threadIdx.y + (blockDim.y * blockIdx.y); neuron1 < nn->neurons[layer]; neuron1 += (blockDim.y * gridDim.y)){
 			for(int neuron2 = threadIdx.z + (blockDim.z * blockIdx.z); neuron2 < nn->neurons[layer + 1]; neuron2 += (blockDim.z * gridDim.z)){
-				nn->weights[layer][neuron1][neuron2] -= (deltaWeights[layer][neuron1][neuron2] / numOutputs);
+				double delta=deltaWeights[layer][neuron1][neuron2]/numOutputs;
+				if(delta<GRADIENT_CEILING && delta>-GRADIENT_CEILING){
+					nn->weights[layer][neuron1][neuron2] -= (deltaWeights[layer][neuron1][neuron2] / numOutputs);
+				}
+				else{
+					if(delta<0){
+						nn->weights[layer][neuron1][neuron2]-=(-GRADIENT_CEILING);
+					}
+					else{
+						nn->weights[layer][neuron1][neuron2]-=(GRADIENT_CEILING);
+					}
+				}
 			}
 		}
 	}
@@ -252,7 +263,18 @@ __global__
 void changeBiases(NeuralNet* nn, double** deltaBiases, int numOutputs){
 	for(int layer = threadIdx.x + (blockDim.x * blockIdx.x); layer < nn->layers - 1; layer += (blockDim.x * gridDim.x)){
 		for(int neuron = threadIdx.y + (blockDim.y * blockIdx.y); neuron < nn->neurons[layer]; neuron += blockDim.y * gridDim.y){
-			nn->biases[layer][neuron] -= (deltaBiases[layer][neuron] / numOutputs);
+			double delta=deltaBiases[layer][neuron]/numOutputs;
+			if(delta<GRADIENT_CEILING && delta>-GRADIENT_CEILING){
+				nn->biases[layer][neuron] -= (deltaBiases[layer][neuron] / numOutputs);
+			}
+			else{
+				if(delta<0){
+					nn->biases[layer][neuron] -= (-GRADIENT_CEILING);
+				}
+				else{
+					nn->biases[layer][neuron] -= (GRADIENT_CEILING);
+				}
+			}
 		}
 	}
 }
