@@ -138,6 +138,30 @@ void printChessBoard(Piece** board){
 	printf("===================================================\n");
 }
 
+double getReward(PieceConversion piece){
+	if(piece.isPawn){
+		return PAWNREWARD;
+	}
+	else if(piece.isRook){
+		return ROOKREWARD;
+	}
+	else if(piece.isKnight){
+		return KNIGHTREWARD;
+	}
+	else if(piece.isBishop){
+		return BISHOPREWARD;
+	}
+	else if(piece.isQueen){
+		return QUEENREWARD;
+	}
+	else if(piece.isKing){
+		return KINGREWARD;
+	}
+	else{
+		return 0;
+	}
+}
+
 /**
   *	Moves a piece from an old position to a new position
   *	Parameter board: the matrix of pieces to alter
@@ -148,13 +172,19 @@ void printChessBoard(Piece** board){
   *	Returns: nothing
   */
 
-void movePiece(Piece** board, int oldRow, int oldCol, int newRow, int newCol){
+double movePiece(Piece** board, int oldRow, int oldCol, int newRow, int newCol){
+	
+	double reward=getReward(board[newRow][newCol].piece);
+
 	// Moves the piece to the designated position
 	board[newRow][newCol].numberConversion=
 		board[oldRow][oldCol].numberConversion;
-
+	board[newRow][newCol].piece.isFirstMove=0;
+	
 	// Deletes the piece from the old position
 	board[oldRow][oldCol].numberConversion=0;
+	
+	return reward;
 }
 
 /**

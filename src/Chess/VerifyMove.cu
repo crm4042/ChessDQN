@@ -1,4 +1,4 @@
-#include "ChessBoard.cuh"
+#include "VerifyMove.cuh"
 
 /**
   *	Gets the change in row
@@ -19,7 +19,7 @@ int getDeltaRow(int oldRow, int newRow){
   */
 
 int getDeltaCol(int oldCol, int newCol){
-	return newCol-oldCol
+	return newCol-oldCol;
 }
 
 
@@ -34,8 +34,8 @@ int getDeltaCol(int oldCol, int newCol){
   *	Returns: whether or not the move was valid
   */
 
-int isValidPawnMove(int board, int oldRow, int oldCol, int newRow, int newCol, 
-		int color){
+int isValidPawnMove(Piece** board, int oldRow, int oldCol, int newRow, 
+		int newCol, int color){
 	
 	int deltaRow=getDeltaRow(oldRow, newRow);
 	int deltaCol=getDeltaCol(oldCol, newCol);
@@ -44,22 +44,24 @@ int isValidPawnMove(int board, int oldRow, int oldCol, int newRow, int newCol,
 	// Double square advance
 	if(deltaRow==2*colorFactor && 
 			deltaCol==0 &&
-			board[oldRow][oldCol].piece.isFirstMove){
+			board[oldRow][oldCol].piece.isFirstMove==1){
 		
 		return canMoveFromTo(board, oldRow, oldCol, newRow, newCol, 
-				color, 0);
+				color, 0, 0);
 	}
 
 	// Single square advance
 	else if(deltaRow==1*colorFactor && deltaCol==0){
 		return canMoveFromTo(board, oldRow, oldCol, newRow, newCol, 
-				color, 0);
+				color, 0, 0);
 	}
 
 	// Take
-	else if(getDeltaRow==1*colorFactor && abs(deltaCol)==1){
+	else if(deltaRow==1*colorFactor && abs(deltaCol)==1 && 
+			hasEnemy(board, newRow, newCol, color)){
+		//printf("%d \n", board[newRow][newCol].numberConversion);
 		return canMoveFromTo(board, oldRow, oldCol, newRow, newCol, 
-				color, 1);
+				color, 1, 0);
 	}
 
 	// Invalid move
@@ -89,7 +91,7 @@ int isValidRookMove(Piece** board, int oldRow, int oldCol, int newRow,
 	if((deltaRow!=0 && deltaCol==0) || 
 			(deltaRow==0 && deltaCol!=0)){
 		return canMoveFromTo(board, oldRow, oldCol, newRow, newCol, 
-				color, 1);
+				color, 1, 0);
 	}
 
 	// Invalid move pattern
@@ -119,7 +121,7 @@ int isValidKnightMove(Piece** board, int oldRow, int oldCol, int newRow,
 	if((abs(deltaRow)==1 && abs(deltaCol)==2) || 
 			(abs(deltaRow)==2 && abs(deltaCol)==1)){
 		return canMoveFromTo(board, oldRow, oldCol, newRow, newCol, 
-				color, 1);
+				color, 1, 0);
 	}
 
 	// Invalid move pattern
@@ -148,7 +150,7 @@ int isValidBishopMove(Piece** board, int oldRow, int oldCol, int newRow,
 	// If it matches the pattern for a bishop's move
 	if(abs(deltaRow)==abs(deltaCol)){
 		return canMoveFromTo(board, oldRow, oldCol, newRow, newCol, 
-				color, 1);
+				color, 1, 0);
 	}
 
 	// Invalid move pattern
@@ -196,7 +198,7 @@ int isValidKingMove(Piece** board, int oldRow, int oldCol, int newRow,
 	if((abs(deltaRow)==1 && abs(deltaCol)<=1) || 
 			(abs(deltaRow) <=1 && abs(deltaCol)==1)){
 		return canMoveFromTo(board, oldRow, oldCol, newRow, newCol, 
-				color, 1);
+				color, 1, 0);
 	}
 
 	// Invalid move pattern
@@ -204,6 +206,8 @@ int isValidKingMove(Piece** board, int oldRow, int oldCol, int newRow,
 		return 0;
 	}
 }
+
+#include "ChessBoard.cuh"
 
 /**
   *	Checks to see if a move is valid
@@ -219,31 +223,80 @@ int isValidKingMove(Piece** board, int oldRow, int oldCol, int newRow,
 int isValidMove(Piece** board, int oldRow, int oldCol, int newRow, int newCol, 
 		int color){
 
+	/*printf("\nVerifying\n");
+
+	if(verifyBounds(oldRow, oldCol)){
+		printf("Valid old bounds\n");
+		if(verifyBounds(newRow, newCol)){
+			printf("Valid new bounds\n");
+			if(isOccupied(board, oldRow, oldCol)){
+				printf("Non-occupied end position\n");
+				if(board[oldRow][oldCol].piece.color==color){
+					printf("Valid color move\n");
+				}
+				else{
+					printf("Invalid color move\n");
+				}
+			}
+			else{
+				printf("Occupied end position\n");
+			}
+		}
+		else{
+			printf("Non-valid new bounds\n");
+		}
+	}
+	else{
+		printf("Non-valid old bounds\n");
+	}*/
+
 	// Checks if there is a piece at oldRow oldCol that can be moved
-	if(inBounds(oldRow, oldCol) && inBounds(newRow, newCol) && 
+	if(verifyBounds(oldRow, oldCol) && verifyBounds(newRow, newCol) && 
 			isOccupied(board, oldRow, oldCol) && 
-			board[oldRow][oldCol].color==color){
+			board[oldRow][oldCol].piece.color==color){
+		
+		//printf("Inside\n");
 
 		// Checks each of the pieces
 		if(board[oldRow][oldCol].piece.isPawn){
-			isValidPawnMove(board, oldRow, oldCol, newRow, newCol);
+			/*if(newRow==6 && oldCol==newCol){
+				printChessBoard(board);
+				printf("PAWN oldRow=%d, oldCol=%d, newRow=%d, newCol=%d\n", oldRow, oldCol, newRow, newCol);
+			}*/
+			return isValidPawnMove(board, oldRow, oldCol, newRow, 
+					newCol, color);
 		}
 		else if(board[oldRow][oldCol].piece.isRook){
-			isValidRookMove();
+			//printf("ROOK\n");
+			return isValidRookMove(board, oldRow, oldCol, newRow, 
+					newCol, color);
 		}
 		else if(board[oldRow][oldCol].piece.isKnight){
-			isValidKnightMove();
+			//printf("KNIGHT\n");
+			return isValidKnightMove(board, oldRow, oldCol, 
+					newRow, newCol, color);
 		}
 		else if(board[oldRow][oldCol].piece.isBishop){
-			isValidBishopMove();
+			//printf("BISHOP\n");
+			return isValidBishopMove(board, oldRow, oldCol, 
+					newRow, newCol, color);
 		}
 		else if(board[oldRow][oldCol].piece.isQueen){
-			isValidQueenMove();
+			//printf("QUEEN\n");
+			return isValidQueenMove(board, oldRow, oldCol, 
+					newRow, newCol, color);
 		}
 		else if(board[oldRow][oldCol].piece.isKing){
-			isValidKingMove();
+			//printf("KING\n");
+			return isValidKingMove(board, oldRow, oldCol, newRow, 
+					newCol, color);
+		}
+		else{
+			printf("");
 		}
 	}
+
+	return 0;
 }
 
 /**
@@ -266,7 +319,7 @@ int verifyBounds(int row, int col){
   */
 
 int isOccupied(Piece** board, int row, int col){
-	return board[row][col].numberConversion==0;
+	return board[row][col].numberConversion!=0;
 }
 
 /**
@@ -301,19 +354,40 @@ int hasObstructions(Piece** board, int oldRow, int oldCol,
 	int deltaRow=pow(-1, newRow<oldRow);
 	int deltaCol=pow(-1, newCol<oldCol);
 	
-	for(int row=oldRow; row!=newRow; row+=deltaRow){
-		for(int col=oldCol; col!=newCol; col+=deltaCol){
-			
-			// Skips the start and end positions
-			if((row==oldRow && col==oldCol) || 
-					(row==newRow && col==newCol)){
-				continue;
+	// If it moves along the col
+	if(oldRow==newRow){
+		for(int col=oldCol+deltaCol; col!=newCol; col+=deltaCol){
+			if(board[oldRow][col].numberConversion!=0){
+				return 1;
 			}
+		}
+	}
 
-			// Checks if a piece is there
-			else{
-				if(board[row][col].numberConversion!=0){
-					return 1;
+	// If it moves along the row
+	else if(oldCol==newCol){
+		for(int row=oldRow+deltaRow; row!=newRow; row+=deltaRow){
+			if(board[row][oldCol].numberConversion!=0){
+				return 1;
+			}
+		}
+	}
+
+	// A diagonal
+	else if(abs(oldRow-newRow)==abs(oldCol-newCol)){
+		for(int row=oldRow; row!=newRow; row+=deltaRow){
+			for(int col=oldCol; col!=newCol; col+=deltaCol){
+			
+				// Skips the start and end positions
+				if((row==oldRow && col==oldCol) || 
+						(row==newRow && col==newCol)){
+					continue;
+				}
+
+				// Checks if a piece is there
+				else{
+					if(board[row][col].numberConversion!=0){
+						return 1;
+					}
 				}
 			}
 		}
@@ -339,7 +413,7 @@ int canMoveFromTo(Piece** board, int oldRow, int oldCol, int newRow,
 	return verifyBounds(oldRow, oldCol) && 
 		verifyBounds(newRow, newCol) &&
 		((canTake && hasEnemy(board, newRow, newCol, color)) ||
-		!isOccupied(newRow, newCol)) &&
+		!isOccupied(board, newRow, newCol)) &&
 		(canJump || !hasObstructions(board, oldRow, oldCol, 
 					     newRow, newCol));
 }

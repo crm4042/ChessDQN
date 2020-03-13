@@ -9,7 +9,7 @@ Piece** makeChessBoard();
 
 void printChessBoard(Piece** board);
 
-void movePiece(Piece** board, int oldRow, int oldCol, int newRow, int newCol);
+double movePiece(Piece** board, int oldRow, int oldCol, int newRow, int newCol);
 
 void oneHotEncode(Piece** board, double* inputVector);
 

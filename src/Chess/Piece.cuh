@@ -14,6 +14,13 @@
 #define QUEEN 'Q'
 #define KING 'K'
 
+#define PAWNREWARD 1
+#define ROOKREWARD 5
+#define KNIGHTREWARD 3
+#define BISHOPREWARD 3
+#define QUEENREWARD 9
+#define KINGREWARD 40
+
 typedef struct pce{
 	unsigned int color : 1;
 	unsigned int isFirstMove : 1;
