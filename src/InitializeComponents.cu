@@ -56,7 +56,7 @@ NeuralNet* setupMonotonicNeuralNet(int layers, int inputNeurons,
 }
 
 void setupGame(int layers, int inputNeurons, int hiddenNeurons, 
-	int outputNeurons, activation activations){
+	int outputNeurons, activation activations, int playerColor){
 
 	NeuralNet* nn1=setupMonotonicNeuralNet(layers, 
 		inputNeurons, hiddenNeurons, 
@@ -65,20 +65,30 @@ void setupGame(int layers, int inputNeurons, int hiddenNeurons,
 		inputNeurons, hiddenNeurons, 
 		outputNeurons, activations);
 
-	train(nn1, nn2);
+	train(nn1, nn2, playerColor);
 }
 
-void setupPausedGame(){
+void setupPausedGame(int playerColor){
 	printf("Deserializing the neural networks\n");
-	NeuralNet* nn1=deserializeNeuralNet("nn1.txt");
-	NeuralNet* nn2=deserializeNeuralNet("nn2.txt");
-	train(nn1, nn2);
+	
+	char* buffer=(char*)calloc(8, sizeof(char));
+	
+	strcpy(buffer, "nn1.txt\0");
+	NeuralNet* nn1=deserializeNeuralNet(buffer);
+
+	strcpy(buffer, "nn2.txt\0");
+	NeuralNet* nn2=deserializeNeuralNet(buffer);
+
+	free(buffer);
+	
+	train(nn1, nn2, playerColor);
 }
 
 void getSetup(int layers, int inputNeurons, int hiddenNeurons, 
 	int outputNeurons, activation activations){
 	
 	int resume=0;
+	int playerColor=-1;
 
 	char* buffer=(char*)calloc(80, sizeof(char));
 	
@@ -90,13 +100,32 @@ void getSetup(int layers, int inputNeurons, int hiddenNeurons,
 	if(strcmp(buffer, "y\n\0")==0){
 		resume=1;
 	}
+
+	do{
+		printf("Do you want to play?[y/n]\n");
+		fgets(buffer, 78, stdin);
+	} while(strcmp(buffer, "y\n\0")!=0 && strcmp(buffer, "n\n\0"));
 	
+	if(strcmp(buffer, "y\n\0")==0){
+		do{
+			printf("What color do you want to play as? [w/b]\n");
+			fgets(buffer, 78, stdin);
+		}while(strcmp(buffer, "w\n\0")!=0 && strcmp(buffer, "b\n\0")!=0);
+
+		if(strcmp(buffer, "w\n\0")==0){
+			playerColor=0;
+		}
+		else{
+			playerColor=1;
+		}
+	}
+
 	free(buffer);
 
 	if(resume){
-		setupPausedGame();
+		setupPausedGame(playerColor);
 	}
 	else{
-		setupGame(layers, inputNeurons, hiddenNeurons, outputNeurons, activations);
+		setupGame(layers, inputNeurons, hiddenNeurons, outputNeurons, activations, playerColor);
 	}
 }

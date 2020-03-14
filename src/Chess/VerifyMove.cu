@@ -223,9 +223,7 @@ int isValidKingMove(Piece** board, int oldRow, int oldCol, int newRow,
 int isValidMove(Piece** board, int oldRow, int oldCol, int newRow, int newCol, 
 		int color){
 
-	/*printf("\nVerifying\n");
-
-	if(verifyBounds(oldRow, oldCol)){
+	/*if(verifyBounds(oldRow, oldCol)){
 		printf("Valid old bounds\n");
 		if(verifyBounds(newRow, newCol)){
 			printf("Valid new bounds\n");
@@ -233,6 +231,12 @@ int isValidMove(Piece** board, int oldRow, int oldCol, int newRow, int newCol,
 				printf("Non-occupied end position\n");
 				if(board[oldRow][oldCol].piece.color==color){
 					printf("Valid color move\n");
+					if(!hasObstructions(board, oldRow, oldCol, newRow, newCol)){
+						printf("No obstructions\n");
+					}
+					else{
+						printf("Obstructions found\n");
+					}
 				}
 				else{
 					printf("Invalid color move\n");
@@ -252,6 +256,7 @@ int isValidMove(Piece** board, int oldRow, int oldCol, int newRow, int newCol,
 
 	// Checks if there is a piece at oldRow oldCol that can be moved
 	if(verifyBounds(oldRow, oldCol) && verifyBounds(newRow, newCol) && 
+			(oldRow!=newRow && oldCol==newCol) &&
 			isOccupied(board, oldRow, oldCol) && 
 			board[oldRow][oldCol].piece.color==color){
 		
@@ -374,21 +379,12 @@ int hasObstructions(Piece** board, int oldRow, int oldCol,
 
 	// A diagonal
 	else if(abs(oldRow-newRow)==abs(oldCol-newCol)){
-		for(int row=oldRow; row!=newRow; row+=deltaRow){
-			for(int col=oldCol; col!=newCol; col+=deltaCol){
-			
-				// Skips the start and end positions
-				if((row==oldRow && col==oldCol) || 
-						(row==newRow && col==newCol)){
-					continue;
-				}
-
-				// Checks if a piece is there
-				else{
-					if(board[row][col].numberConversion!=0){
-						return 1;
-					}
-				}
+		for(int row=oldRow+deltaRow, col=oldCol+deltaCol; 
+			row!=newRow || col!=newCol; 
+			row+=deltaRow, col+=deltaCol){
+			if(board[row][col].numberConversion!=0){
+				printf("Obstruction Row %d, Col %d\n", row, col);
+				return 1;
 			}
 		}
 	}

@@ -18,4 +18,7 @@ int isOccupied(Piece** board, int row, int col);
 
 int hasEnemy(Piece** board, int row, int col, int color);
 
+int hasObstructions(Piece** board, int oldRow, int oldCol, int newRow, 
+	int newCol);
+
 #endif

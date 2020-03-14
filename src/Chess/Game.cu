@@ -30,6 +30,41 @@ int parseMoveToIndex(int* move){
 	return index;
 }
 
+int makePlayerTurn(Piece** board, int color){
+	int winner=-1;
+	int madeMove=0;
+	char* buffer=(char*)calloc(80, sizeof(char));
+
+	do{
+		printf("Make a move in the format: [oldRow oldCol newRow newCol]\n");
+
+		int oldRow=-1;
+		int oldCol=-1;
+		int newRow=-1;
+		int newCol=-1;
+		
+		fgets(buffer, 78, stdin);
+		oldRow=buffer[0]-48;
+		oldCol=buffer[2]-48;
+		newRow=buffer[4]-48;
+		newCol=buffer[6]-48;
+
+		if(isValidMove(board, oldRow, oldCol, newRow, newCol, color)){
+			if(movePiece(board, oldRow, oldCol, newRow, newCol)==KINGREWARD){
+				winner=color;
+			}
+			madeMove=1;
+		}
+		else{
+			printf("Invalid move made\n");
+		}
+	}while(!madeMove);
+
+	free(buffer);
+
+	return winner;
+}
+
 /**
   *	Makes the turn and updates the output vector
   *	Parameter nn: the neural network
@@ -44,7 +79,7 @@ int parseMoveToIndex(int* move){
 
 int makeTurn(Piece** board, int color, int turn, NeuralNet* nn, 
 	double* inputVector, double*** expected, double** actual, int* chosens){
-	
+
 	// Gets the expected output vector
 	oneHotEncode(board, inputVector);
 	feedForward(nn, &expected[turn], inputVector);
@@ -62,7 +97,6 @@ int makeTurn(Piece** board, int color, int turn, NeuralNet* nn,
 
 			// Gets the random move
 			int random=rand();
-			//printf("Random=%d mod neurons=%d=%d\n", random, nn->neurons[nn->layers-1], random%nn->neurons[nn->layers-1]);
 			int randomIndex=random%nn->neurons[nn->layers-1];
 			int* move=parseIndexToMove(randomIndex);
 
@@ -70,12 +104,10 @@ int makeTurn(Piece** board, int color, int turn, NeuralNet* nn,
 			if(isValidMove(board, move[0], move[1], move[2], 
 						move[3], color)){
 
-				//printf("Validation suceeded\n");
 
 				actual[turn][randomIndex]=movePiece(board, 
 					move[0], move[1], move[2], move[3]);
 
-				//printf("Moved\n");
 				chosens[turn]=randomIndex;
 
 				if(actual[turn][randomIndex]==KINGREWARD){
@@ -86,9 +118,7 @@ int makeTurn(Piece** board, int color, int turn, NeuralNet* nn,
 			}
 
 			else{
-				//printf("Validation failed actual[%d][%d]=-1\n", turn, randomIndex);
 				actual[turn][randomIndex]=-1;
-				//printf("Reward updated\n");
 			}
 
 			free(move);
@@ -103,7 +133,6 @@ int makeTurn(Piece** board, int color, int turn, NeuralNet* nn,
 
 			if(isValidMove(board, move[0], move[1], move[2], 
 						move[3], color)){
-				//printf("Validation suceeded\n");
 
 				actual[turn][maxIndex]=
 					movePiece(board, move[0], move[1], 
@@ -119,7 +148,6 @@ int makeTurn(Piece** board, int color, int turn, NeuralNet* nn,
 			}
 
 			else{
-				//printf("Validation failed actual[%d][%d]=-1\n", turn, maxIndex);
 				actual[turn][maxIndex]=-1;
 			}
 
@@ -130,8 +158,6 @@ int makeTurn(Piece** board, int color, int turn, NeuralNet* nn,
 		}
 
 	}while(!madeMove);
-	
-	//printf("MTF\n");
 
 	return winner;
 }
@@ -143,7 +169,7 @@ int makeTurn(Piece** board, int color, int turn, NeuralNet* nn,
   *	Parameter inputVector: the input vector
   */
 
-int playGame(NeuralNet* nn1, NeuralNet* nn2, double* inputVector, 
+int playGame(NeuralNet* nn1, NeuralNet* nn2, int playerColor, double* inputVector, 
 	double*** expected1, double*** expected2, double** actual1, 
 	double** actual2, int* chosens1, int* chosens2){
 
@@ -155,7 +181,11 @@ int playGame(NeuralNet* nn1, NeuralNet* nn2, double* inputVector,
 	int blackTurns=0;
 	int color=0;
 	do{
-		if(color==0){
+		if(color == playerColor){
+			printChessBoard(board);
+			winner=makePlayerTurn(board, color);
+		}
+		else if(color==0){
 			winner=makeTurn(board, color, whiteTurns,  nn1, 
 				inputVector, expected1, actual1, chosens1);
 			whiteTurns++;
@@ -202,7 +232,7 @@ void alterActual(double** actual, int* chosens, int numOutputs){
   *	Returns: nothing
   */
 
-void train(NeuralNet* nn1, NeuralNet* nn2){
+void train(NeuralNet* nn1, NeuralNet* nn2, int playerColor){
 	// The inputs used for both neural network feedforwards
 	double* sharedInputs=(double*)calloc(nn1 -> neurons[0], 
 		sizeof(double*));
@@ -227,20 +257,28 @@ void train(NeuralNet* nn1, NeuralNet* nn2){
 	for(int game=0; 1; game++){
 		if(game%5==0){
 			printf("Serializing the neural networks\n");
-			serializeNeuralNet(nn1, "nn1.txt");
-			serializeNeuralNet(nn2, "nn2.txt");
+			char* buffer=(char*)calloc(8, sizeof(char));
+			
+			strcpy(buffer, "nn1.txt\0");
+			serializeNeuralNet(nn1, buffer);
+			
+			strcpy(buffer, "nn2.txt\0");
+			serializeNeuralNet(nn2, buffer);
+			
+			free(buffer);
 		}
 
 		printf("Training on game %d\n", game);
-		playGame(nn1, nn2, sharedInputs, expected1, expected2, 
+		playGame(nn1, nn2, playerColor, sharedInputs, expected1, expected2, 
 			actual1, actual2, chosens1, chosens2);
 		
 		alterActual(actual1, chosens1, TURNS);
 		alterActual(actual2, chosens2, TURNS);
 
-		printf("Backpropogating\n");
-
-		backpropogate(nn1, expected1, actual1, TURNS);
-		backpropogate(nn2, expected2, actual2, TURNS);
+		if(playerColor==-1){
+			printf("Backpropogating\n");
+			backpropogate(nn1, expected1, actual1, TURNS);
+			backpropogate(nn2, expected2, actual2, TURNS);
+		}
 	}
 }

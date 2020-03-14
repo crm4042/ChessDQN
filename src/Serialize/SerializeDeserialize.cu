@@ -28,6 +28,13 @@ void serializeNeuralNet(NeuralNet* nn, char* fileName){
 		}
 	}
 
+	// Writes the activation data
+	for(int layer=0; layer<nn->layers-1; layer++){
+		for(int neuron=0; neuron<nn->neurons[layer+1]; neuron++){
+			fprintf(file, "%d\n", nn->activations[layer][neuron]);
+		}
+	}
+
 	fclose(file);
 }
 
@@ -69,9 +76,16 @@ NeuralNet* deserializeNeuralNet(char* fileName){
 		}
 	}
 
-	fclose(file);
+	// Gets the activation function data
+	cudaMallocManaged(&nn->activations, (nn->layers-1)*sizeof(activation*));
+	for(int layer=0; layer<nn->layers-1; layer++){
+		cudaMallocManaged(&nn->activations[layer], nn->neurons[layer+1]*sizeof(activation));
+		for(int neuron=0; neuron<nn->neurons[layer+1]; neuron++){
+			fscanf(file, "%d\n", &nn->activations[layer][neuron]);
+		}
+	}
 
-	serializeNeuralNet(nn, "newnn.txt");
+	fclose(file);
 
 	return nn;
 }

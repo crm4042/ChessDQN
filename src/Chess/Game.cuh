@@ -12,6 +12,6 @@
 #define DISCOUNT .25
 
 
-void train(NeuralNet* nn1, NeuralNet* nn2);
+void train(NeuralNet* nn1, NeuralNet* nn2, int playerColor);
 
 #endif
