@@ -223,40 +223,41 @@ int isValidKingMove(Piece** board, int oldRow, int oldCol, int newRow,
 int isValidMove(Piece** board, int oldRow, int oldCol, int newRow, int newCol, 
 		int color){
 
-	/*if(verifyBounds(oldRow, oldCol)){
-		printf("Valid old bounds\n");
+	/*printf("OldRow %d, OldCol %d NewRow %d, NewCol %d; ", oldRow, oldCol, newRow, newCol);
+	if(verifyBounds(oldRow, oldCol)){
+		printf("Valid old bounds ");
 		if(verifyBounds(newRow, newCol)){
-			printf("Valid new bounds\n");
+			printf("Valid new bounds ");
 			if(isOccupied(board, oldRow, oldCol)){
-				printf("Non-occupied end position\n");
+				printf("Occupied start position ");
 				if(board[oldRow][oldCol].piece.color==color){
-					printf("Valid color move\n");
+					printf("Valid color move ");
 					if(!hasObstructions(board, oldRow, oldCol, newRow, newCol)){
-						printf("No obstructions\n");
+						printf("No obstructions. Passed to inside\n");
 					}
 					else{
-						printf("Obstructions found\n");
+						printf("Obstructions found \n");
 					}
 				}
 				else{
-					printf("Invalid color move\n");
+					printf("Invalid color move \n");
 				}
 			}
 			else{
-				printf("Occupied end position\n");
+				printf("Occupied end position /n");
 			}
 		}
 		else{
-			printf("Non-valid new bounds\n");
+			printf("Non-valid new bounds /n");
 		}
 	}
 	else{
-		printf("Non-valid old bounds\n");
+		printf("Non-valid old bounds /n");
 	}*/
 
 	// Checks if there is a piece at oldRow oldCol that can be moved
 	if(verifyBounds(oldRow, oldCol) && verifyBounds(newRow, newCol) && 
-			(oldRow!=newRow && oldCol==newCol) &&
+			(oldRow!=newRow || oldCol!=newCol) &&
 			isOccupied(board, oldRow, oldCol) && 
 			board[oldRow][oldCol].piece.color==color){
 		
@@ -383,7 +384,6 @@ int hasObstructions(Piece** board, int oldRow, int oldCol,
 			row!=newRow || col!=newCol; 
 			row+=deltaRow, col+=deltaCol){
 			if(board[row][col].numberConversion!=0){
-				printf("Obstruction Row %d, Col %d\n", row, col);
 				return 1;
 			}
 		}

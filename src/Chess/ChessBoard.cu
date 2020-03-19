@@ -70,6 +70,13 @@ Piece** makeChessBoard(){
 	return board;
 }
 
+void freeChessBoard(Piece** board){
+	for(int row=0; row<DIM; row++){
+		free(board[row]);
+	}
+	free(board);
+}
+
 /**
   *	Prints the chess board
   *	Parameter board: the chess board to print
@@ -77,7 +84,7 @@ Piece** makeChessBoard(){
   */
 
 void printChessBoard(Piece** board){
-	printf("\t");
+	printf("\n\t");
 
 	for(int col=0; col<DIM; col++){
 		printf("%c\t", ((int)'A')+col);

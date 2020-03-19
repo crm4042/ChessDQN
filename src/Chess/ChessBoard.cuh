@@ -7,6 +7,8 @@
 
 Piece** makeChessBoard();
 
+void freeChessBoard(Piece** board);
+
 void printChessBoard(Piece** board);
 
 double movePiece(Piece** board, int oldRow, int oldCol, int newRow, int newCol);

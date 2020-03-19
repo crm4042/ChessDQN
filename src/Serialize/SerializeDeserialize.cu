@@ -89,3 +89,71 @@ NeuralNet* deserializeNeuralNet(char* fileName){
 
 	return nn;
 }
+
+void serializeChessBoard(Piece** board, char* filename){
+	FILE* file=fopen(filename, "w");
+	
+	fprintf(file, "\t");
+
+	for(int col=0; col<DIM; col++){
+		fprintf(file, "%c\t", ((int)'A')+col);
+	}
+
+	fprintf(file, "\n");
+
+	for(int row=0; row<DIM; row++){
+
+		fprintf(file, "%d\t", row);
+
+		for(int col=0; col<DIM; col++){
+			
+			if(board[row][col].numberConversion==0){
+				fprintf(file, "______\t");
+			}
+
+			else{
+				fprintf(file, "__");
+
+				if(board[row][col].piece.color==0){
+					fprintf(file, "W");
+				}
+				else{
+					fprintf(file, "B");
+				}
+
+				if(board[row][col].piece.isPawn){
+					fprintf(file, "P");
+				}
+				else if(board[row][col].piece.isRook){
+					fprintf(file, "R");
+				}
+				else if(board[row][col].piece.isKnight){
+					fprintf(file, "N");
+				}
+				else if(board[row][col].piece.isBishop){
+					fprintf(file, "B");
+				}
+				else if(board[row][col].piece.isQueen){
+					fprintf(file, "Q");
+				}
+				else{
+					fprintf(file, "K");
+				}
+
+				fprintf(file, "__\t");
+			}
+		}
+
+		fprintf(file, "\n");
+	}
+
+	fprintf(file, "\n======================================================\n\n");
+
+	for(int row=0; row<DIM; row++){
+		for(int col=0; col<DIM; col++){
+			fprintf(file, "Row %d, Col %d, Num %d, clr %d, fst %d, Pwn %d, Rk %d, Knt %d, Bshp %d, Qn %d, Kng %d\n", row, col, board[row][col].numberConversion, board[row][col].piece.color, board[row][col].piece.isFirstMove, board[row][col].piece.isPawn, board[row][col].piece.isRook, board[row][col].piece.isKnight, board[row][col].piece.isBishop, board[row][col].piece.isQueen, board[row][col].piece.isKing);
+		}
+	}
+
+	fclose(file);
+}

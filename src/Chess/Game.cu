@@ -86,7 +86,7 @@ int makeTurn(Piece** board, int color, int turn, NeuralNet* nn,
 
 	// Gets the next move
 	int madeMove=0;
-	int randomMove=rand()/RAND_MAX<EXPLORATION;
+	int randomMove=((rand()+0.0)/RAND_MAX)<EXPLORATION;
 	
 	int winner=-1;
 
@@ -95,29 +95,38 @@ int makeTurn(Piece** board, int color, int turn, NeuralNet* nn,
 		// If there should be a random move made
 		if(randomMove){
 
+			//printf("Random move\n");
+
 			// Gets the random move
 			int random=rand();
 			int randomIndex=random%nn->neurons[nn->layers-1];
 			int* move=parseIndexToMove(randomIndex);
 
+			//printf("Move %d %d %d %d\n", move[0], move[1], move[2], move[3]);
+
 			// Validates, makes, and gets the reward for a move
 			if(isValidMove(board, move[0], move[1], move[2], 
 						move[3], color)){
 
+				//printf("Valid\n");
 
+				// Updates the reward
 				actual[turn][randomIndex]=movePiece(board, 
-					move[0], move[1], move[2], move[3]);
+					move[0], move[1], move[2], move[3])+TURNDEFICIT;
 
+				// Gets the index of the chosen value
 				chosens[turn]=randomIndex;
 
-				if(actual[turn][randomIndex]==KINGREWARD){
+				if(actual[turn][randomIndex]==KINGREWARD+TURNDEFICIT){
 					winner=color;
 				}
 
 				madeMove=1;
 			}
 
+			// An invalid move
 			else{
+				//printf("Not valid\n");
 				actual[turn][randomIndex]=-1;
 			}
 
@@ -127,20 +136,28 @@ int makeTurn(Piece** board, int color, int turn, NeuralNet* nn,
 		
 		// Otherwise choose the best move
 		else{
+			//printf("Not random\n");
+
 			int maxIndex=getMaxIndex(expected[turn][nn->layers-1], 
 					nn->neurons[nn->layers-1]);
 			int* move=parseIndexToMove(maxIndex);
+			
+			//printf("Move %d %d %d %d\n", move[0], move[1], move[2], move[3]);
 
 			if(isValidMove(board, move[0], move[1], move[2], 
 						move[3], color)){
 
+				//printf("Valid");
+				
+				// Updates the reward
 				actual[turn][maxIndex]=
 					movePiece(board, move[0], move[1], 
-					move[2], move[3]);
+					move[2], move[3])+TURNDEFICIT;
 				
+				// Updates the chosen list
 				chosens[turn]=maxIndex;
 
-				if(actual[turn][maxIndex]==KINGREWARD){
+				if(actual[turn][maxIndex]==KINGREWARD+TURNDEFICIT){
 					winner=color;
 				}
 
@@ -148,6 +165,8 @@ int makeTurn(Piece** board, int color, int turn, NeuralNet* nn,
 			}
 
 			else{
+				//printf("Not valid");
+
 				actual[turn][maxIndex]=-1;
 			}
 
@@ -171,36 +190,43 @@ int makeTurn(Piece** board, int color, int turn, NeuralNet* nn,
 
 int playGame(NeuralNet* nn1, NeuralNet* nn2, int playerColor, double* inputVector, 
 	double*** expected1, double*** expected2, double** actual1, 
-	double** actual2, int* chosens1, int* chosens2){
+	double** actual2, int* chosens1, int* chosens2, int* whiteTurns, 
+	int* blackTurns){
 
 	Piece** board=makeChessBoard();
 	//printChessBoard(board);
 
 	int winner;
-	int whiteTurns=0;
-	int blackTurns=0;
 	int color=0;
 	do{
+		char* filename=(char*)calloc(10, sizeof(char));
+		strcpy(filename, "board.txt\0");
+		serializeChessBoard(board, filename);
+		free(filename);
 		if(color == playerColor){
 			printChessBoard(board);
 			winner=makePlayerTurn(board, color);
 		}
 		else if(color==0){
-			winner=makeTurn(board, color, whiteTurns,  nn1, 
+			//printf("\nWhite turn %d\n", *whiteTurns);
+			winner=makeTurn(board, color, *whiteTurns,  nn1, 
 				inputVector, expected1, actual1, chosens1);
-			whiteTurns++;
+			(*whiteTurns)++;
 		}
 		else{
-			winner=makeTurn(board, color, blackTurns, nn2, 
+			//printf("\nBlack turn %d\n", *blackTurns);
+			winner=makeTurn(board, color, *blackTurns, nn2, 
 				inputVector, expected2, actual2, chosens2);
-			blackTurns++;
+			(*blackTurns)++;
 		}
 		color=(color+1)%2;
 
 		//printChessBoard(board);
-	}while(winner<0 && whiteTurns<TURNS && blackTurns<TURNS);
+	}while(winner<0 && (*whiteTurns)<TURNS && (*blackTurns)<TURNS);
 
 	printChessBoard(board);
+
+	freeChessBoard(board);
 
 	return winner;
 }
@@ -214,7 +240,16 @@ int playGame(NeuralNet* nn1, NeuralNet* nn2, int playerColor, double* inputVecto
   *	Returns: nothing
   */
 
-void alterActual(double** actual, int* chosens, int numOutputs){
+void alterActual(double** actual, int* chosens, int numOutputs, int won, int tie){
+	// The win/loss rewards to be added to the final state
+	if(won){
+		actual[numOutputs-1][chosens[numOutputs-1]]+=DISCOUNT*WINREWARD;
+	}
+	else if(!tie){
+		actual[numOutputs-1][chosens[numOutputs-1]]+=DISCOUNT*LOSSREWARD;
+	}
+
+	// The bellman equation to chain the actions together
 	for(int output=numOutputs-2; output>=0; output--){
 		if(chosens[output+1]!=-1){
 			actual[output][chosens[output]]+=
@@ -268,12 +303,20 @@ void train(NeuralNet* nn1, NeuralNet* nn2, int playerColor){
 			free(buffer);
 		}
 
+		int* whiteTurns=(int*)calloc(1, sizeof(int));
+		int* blackTurns=(int*)calloc(1, sizeof(int));
+
 		printf("Training on game %d\n", game);
-		playGame(nn1, nn2, playerColor, sharedInputs, expected1, expected2, 
-			actual1, actual2, chosens1, chosens2);
+		int winner=playGame(nn1, nn2, playerColor, sharedInputs, expected1, expected2, 
+			actual1, actual2, chosens1, chosens2, whiteTurns, blackTurns);
 		
-		alterActual(actual1, chosens1, TURNS);
-		alterActual(actual2, chosens2, TURNS);
+		printf("Performing bellman equation on rewards\n");
+
+		alterActual(actual1, chosens1, *whiteTurns, winner==0, winner==-1);
+		alterActual(actual2, chosens2, *blackTurns, winner==1, winner==-1);
+
+		free(whiteTurns);
+		free(blackTurns);
 
 		if(playerColor==-1){
 			printf("Backpropogating\n");
