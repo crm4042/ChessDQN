@@ -15,6 +15,6 @@
 #define TURNDEFICIT -.1
 
 
-void train(NeuralNet* nn1, NeuralNet* nn2, int playerColor);
+void train(NeuralNet* nn1, NeuralNet* nn2, int playerColor, char* file1, char* file2);
 
 #endif

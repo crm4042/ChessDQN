@@ -1,5 +1,79 @@
 #include "VerifyMove.cuh"
 
+int getCheck(Piece** board, int kingRow, int kingCol, int color){
+
+	// Loops through the rows
+	for(int direction=-1; direction<=1; direction+=2){
+		for(int row=kingRow; row<DIM && row>=0; row+=direction){
+			if(board[row][kingCol].piece.color==color){
+				break;
+			}
+
+			else if(board[row][kingCol].piece.isRook || 
+				board[row][kingCol].piece.isQueen || 
+				(board[row][kingCol].piece.isKing && 
+					abs(row-kingRow)==1)){
+				return 1;
+			}
+		}
+	}
+
+	// Loops through the cols
+	for(int direction=-1; direction<=1; direction+=2){
+		for(int col=kingCol; col<DIM && col>=0; col+=direction){
+			if(board[kingRow][col].piece.color==color){
+				break;
+			}
+
+			else if(board[kingRow][col].piece.isRook ||
+				board[kingRow][col].piece.isQueen || 
+				(board[kingRow][col].piece.isKing && 
+					abs(col-kingCol)==1)){
+				return 1;
+			}
+		}
+	}
+
+	// Loops through the diagonals
+	for(int rowDirection=-1; rowDirection<=1; rowDirection+=2){
+		for(int colDirection=-1; colDirection<=1; colDirection+=2){
+			for(int row=kingRow, col=kingCol; 
+				row>=0 && row<DIM && col>=0 && col<DIM;
+				row+=rowDirection, col+=colDirection){
+
+				if(board[row][col].piece.color==color){
+					break;
+				}
+
+				else if(board[row][col].piece.isBishop || 
+					board[row][col].piece.isQueen ||
+					(board[row][col].piece.isKing && 
+						abs(row-kingRow)==1 && 
+						abs(col-kingCol)==1)){
+
+					return 1;
+				}
+			}
+		}
+	}
+
+	// Loops through the knights
+	for(int row=max(0, kingRow-2); row<=min(DIM-1, kingRow+2); row++){
+		for(int col=max(0, kingCol-2); col<=min(DIM-1, kingCol+2); col++){
+			if(row==kingRow || col==kingCol || 
+				abs(row-kingRow)==abs(col-kingCol)){
+				continue;
+			}
+
+			else if(board[row][col].piece.isKnight){
+				return 1;
+			}
+		}
+	}
+
+	return 0;
+}
+
 /**
   *	Gets the change in row
   *	Parameter oldRow: the row to move from
@@ -199,6 +273,31 @@ int isValidKingMove(Piece** board, int oldRow, int oldCol, int newRow,
 			(abs(deltaRow) <=1 && abs(deltaCol)==1)){
 		return canMoveFromTo(board, oldRow, oldCol, newRow, newCol, 
 				color, 1, 0);
+	}
+
+	// If it matches the pattern for a castle
+	else if(oldRow==newRow &&
+		abs(deltaCol)==2 &&
+		board[oldRow][oldCol].piece.isFirstMove &&
+		canMoveFromTo(board, oldRow, oldCol, newRow, newCol, color, 
+			0, 0) &&
+		((deltaCol<0 && board[oldRow][0].piece.isRook && 
+			board[oldRow][0].piece.isFirstMove && 
+			canMoveFromTo(board, oldRow, 0, newRow, 3, color, 
+				0, 0)) ||
+		(deltaCol>0 && board[oldRow][7].piece.isRook && 
+			board[oldRow][7].piece.isFirstMove && 
+			canMoveFromTo(board, oldRow, 7, newRow, 5, color, 
+				0, 0)))){
+
+		//Checks for a check between the two (inclusive)
+		for(int col=oldCol; col!=newCol+(deltaCol/abs(deltaCol)); col+=(deltaCol/abs(deltaCol))){
+			if(getCheck(board, oldRow, col, color)){
+				return 0;
+			}
+		}
+
+		return 1;
 	}
 
 	// Invalid move pattern

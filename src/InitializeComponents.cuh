@@ -9,11 +9,11 @@ NeuralNet* setupMonotonicNeuralNet(int layers, int inputNeurons,
 	int hiddenNeurons, int outputNeurons, activation fullActivations);
 
 void setupGame(int layers, int inputNeurons, int hiddenNeurons, 
-	int outputNeurons, activation activations, int playerColor);
+	int outputNeurons, activation activations, int playerColor, char* file1, char* file2);
 
-void setupPausedGame(int playerColor);
+void setupPausedGame(int playerColor, char* file1, char* file2);
 
 void getSetup(int layers, int inputNeurons, int hiddenNeurons, 
-	int outputNeurons, activation activations);
+	int outputNeurons, activation activations, char* file1, char* file2);
 
 #endif

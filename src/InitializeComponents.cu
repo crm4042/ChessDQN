@@ -56,7 +56,8 @@ NeuralNet* setupMonotonicNeuralNet(int layers, int inputNeurons,
 }
 
 void setupGame(int layers, int inputNeurons, int hiddenNeurons, 
-	int outputNeurons, activation activations, int playerColor){
+	int outputNeurons, activation activations, int playerColor, 
+	char* file1, char* file2){
 
 	NeuralNet* nn1=setupMonotonicNeuralNet(layers, 
 		inputNeurons, hiddenNeurons, 
@@ -65,27 +66,22 @@ void setupGame(int layers, int inputNeurons, int hiddenNeurons,
 		inputNeurons, hiddenNeurons, 
 		outputNeurons, activations);
 
-	train(nn1, nn2, playerColor);
+	train(nn1, nn2, playerColor, file1, file2);
 }
 
-void setupPausedGame(int playerColor){
+void setupPausedGame(int playerColor, char* file1, char* file2){
 	printf("Deserializing the neural networks\n");
 	
 	char* buffer=(char*)calloc(8, sizeof(char));
 	
-	strcpy(buffer, "nn1.txt\0");
-	NeuralNet* nn1=deserializeNeuralNet(buffer);
-
-	strcpy(buffer, "nn2.txt\0");
-	NeuralNet* nn2=deserializeNeuralNet(buffer);
-
-	free(buffer);
+	NeuralNet* nn1=deserializeNeuralNet(file1);
+	NeuralNet* nn2=deserializeNeuralNet(file2);
 	
-	train(nn1, nn2, playerColor);
+	train(nn1, nn2, playerColor, file1, file2);
 }
 
 void getSetup(int layers, int inputNeurons, int hiddenNeurons, 
-	int outputNeurons, activation activations){
+	int outputNeurons, activation activations, char* file1, char* file2){
 	
 	int resume=0;
 	int playerColor=-1;
@@ -123,9 +119,10 @@ void getSetup(int layers, int inputNeurons, int hiddenNeurons,
 	free(buffer);
 
 	if(resume){
-		setupPausedGame(playerColor);
+		setupPausedGame(playerColor, file1, file2);
 	}
 	else{
-		setupGame(layers, inputNeurons, hiddenNeurons, outputNeurons, activations, playerColor);
+		setupGame(layers, inputNeurons, hiddenNeurons, outputNeurons, activations, 
+			playerColor, file1, file2);
 	}
 }

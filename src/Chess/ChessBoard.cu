@@ -183,6 +183,20 @@ double movePiece(Piece** board, int oldRow, int oldCol, int newRow, int newCol){
 	
 	double reward=getReward(board[newRow][newCol].piece);
 
+	// Moves the rook in the 
+	if(board[oldRow][oldCol].piece.isKing && abs(newCol-oldCol)>1){
+		if(oldCol>newCol && board[oldRow][0].piece.isRook){
+			board[oldRow][3].numberConversion=
+				board[oldRow][0].numberConversion;
+			board[oldRow][0].numberConversion=0;
+		}
+		else if(oldCol<newCol && board[oldRow][7].piece.isRook){
+			board[oldRow][5].numberConversion=
+				board[oldRow][7].numberConversion;
+			board[oldRow][7].numberConversion=0;
+		}
+	}
+
 	// Moves the piece to the designated position
 	board[newRow][newCol].numberConversion=
 		board[oldRow][oldCol].numberConversion;
